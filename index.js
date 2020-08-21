@@ -5,6 +5,9 @@ var cookieParser = require('cookie-parser');
 
 var upload = multer();
 
+var mongoose = require('mongoose');
+mongoose.connect('mongodb+srv://' +  + ':' +  + '@cluster0.0czcr.mongodb.net/' +  + '?retryWrites=true&w=majority');
+
 var app = express();
 
 app.use(cookieParser());
