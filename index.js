@@ -6,7 +6,10 @@ var cookieParser = require('cookie-parser');
 var upload = multer();
 
 var mongoose = require('mongoose');
-mongoose.connect('mongodb+srv://' +  + ':' +  + '@cluster0.0czcr.mongodb.net/' +  + '?retryWrites=true&w=majority');
+mongoose.connect('mongodb+srv://' + config.dbUser + ':' + config.dbPass + '@cluster0.0czcr.mongodb.net/' + config.dbName + '?retryWrites=true&w=majority');
+
+//load config
+const config = require('./config');
 
 var app = express();
 
