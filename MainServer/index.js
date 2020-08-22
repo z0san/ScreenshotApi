@@ -5,8 +5,6 @@ var cookieParser = require('cookie-parser');
 
 var upload = multer();
 
-var mongoose = require('mongoose');
-mongoose.connect('mongodb+srv://' + config.dbUser + ':' + config.dbPass + '@cluster0.0czcr.mongodb.net/' + config.dbName + '?retryWrites=true&w=majority');
 
 //load config
 const config = require('./config');
@@ -26,6 +24,12 @@ app.use('/screenshots', express.static('screenshots'));
 var download = require('./screenshots.js');
 
 //Use the Router on the sub route /movies
-app.use('/screenshotdownload', download);
+app.use('/imageFetcher', download);
+
+//handels homepage and redirects to ssdownload for testing purposes
+app.get('/', function(req, res){
+  res.redirect('/imageFetcher');
+});
+
 
 app.listen(80);
