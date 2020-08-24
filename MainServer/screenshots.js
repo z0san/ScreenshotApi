@@ -10,7 +10,8 @@ const config = require('./config');
 
 //load and connect to mongodb db
 var mongoose = require('mongoose');
-mongoose.connect('mongodb+srv://' + config.dbUser + ':' + config.dbPass + '@cluster0.0czcr.mongodb.net/' + config.dbName + '?retryWrites=true&w=majority');
+mongoose.connect('mongodb+srv://' + config.dbUser + ':' + config.dbPass +
+'@cluster0.0czcr.mongodb.net/' + config.dbName + '?retryWrites=true&w=majority');
 
 //create schema for saving urls
 var urlShema = mongoose.Schema({
@@ -20,7 +21,8 @@ var urlShema = mongoose.Schema({
  imgLink: String,
  downloaded: Boolean,
  assigned: Boolean,
- downloader: String
+ downloader: String,
+ downloadStartTime: Number
 });
 var UrlModel = mongoose.model("UrlModel", urlShema);
 
@@ -34,6 +36,12 @@ router.get('/', function(req, res){
   //find if already in db
   UrlModel.find({url: url},
    function(err, response){
+     //deal with errors
+     if(err){
+       console.log(result);
+       return console.error(err);
+     }
+
      //test to see if there are any results for required url
      if(response.length == 0){
         //stores the hash of the url for faster file managment
@@ -71,7 +79,8 @@ function saveNewUrl(UrlModel, url, hash, callback){
        imgLink: "screenshots/" + hash + suffix.toString() + ".jpg",
        downloaded: false,
        assigned: false,
-       downloader: null
+       downloader: null,
+       downloadStartTime: null
     });
 
     newUrl.save(function(err, Person){
