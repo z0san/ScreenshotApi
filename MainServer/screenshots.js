@@ -1,6 +1,9 @@
 var express = require('express');
 // var fs = require('fs');
 var router = express.Router();
+var crypto = require('crypto');
+
+//using md5 hash to make image files faster to find and shorter names also acts as a rudimentary hash set
 
 //load config
 const config = require('./config');
@@ -34,7 +37,7 @@ router.get('/', function(req, res){
      //test to see if there are any results for required url
      if(response.length == 0){
         //stores the hash of the url for faster file managment
-        var hash = 'fake hash';
+        var hash = crypto.createHash('md5').update(url).digest("hex");
 
        //adds url to db
        if(!url){ //needs to make sure it's a valid url
@@ -60,13 +63,13 @@ module.exports = router;
 
 //function to save new url entry
 function saveNewUrl(UrlModel, url, hash, callback){
-  getSuffix(UrlModel, hash, function(err, response, len){
+  getSuffix(UrlModel, hash, function(err, response, suffix){
     var newUrl = new UrlModel({
        url: url,
        hash: hash,
-       suffix: len,
-       imgLink: "screenshots/testImage.jpg",
-       downloaded: true,
+       suffix: suffix,
+       imgLink: "screenshots/" + hash + suffix.toString() + ".jpg",
+       downloaded: false,
        assigned: false,
        downloader: null
     });
@@ -82,10 +85,10 @@ function saveNewUrl(UrlModel, url, hash, callback){
 
 //function to check for hash collisions and come up with suffix to fix this problem
 function getSuffix(UrlModel, hash, callback){
-  var len = 0;
+  var suffix = 0;
   UrlModel.find({hash: hash}, function(err, response){
-    len = response.length; //this will always return the next int for a suffix with common hash
-    console.log('response length: ' + len);
-    callback(err, response, len);
+    suffix = response.length; //this will always return the next int for a suffix with common hash
+    //console.log('response length: ' + suffix);
+    callback(err, response, suffix);
   });
 }
