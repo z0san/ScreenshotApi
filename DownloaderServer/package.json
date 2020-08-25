@@ -9,8 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.1",
     "mongoose": "^5.10.0",
-    "nodemon": "^2.0.4"
+    "nodemon": "^2.0.4",
+    "puppeteer": "^1.16.0"
   }
 }
