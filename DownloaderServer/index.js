@@ -5,24 +5,22 @@ const puppeteer = require('puppeteer');
 
 //load config
 const config = require('./config');
+//connect uploader
+var uploader = require('./uploader');
 
 //load and connect to mongodb db
 var mongoose = require('mongoose');
 mongoose.connect('mongodb+srv://' + config.dbUser + ':' + config.dbPass +
-'@cluster0.0czcr.mongodb.net/' + config.dbName + '?retryWrites=true&w=majority');
+'@cluster0.0czcr.mongodb.net/' + config.dbName + '?retryWrites=true&w=majority',
+    { useNewUrlParser: true, useUnifiedTopology: true }, err => {
+        console.log('connected')
+    });
 
-//create schema for saving urls
-var urlShema = mongoose.Schema({
- url: String,
- hash: String,
- suffix: Number,
- imgLink: String,
- downloaded: Boolean,
- assigned: Boolean,
- downloader: String,
- downloadStartTime: Number
-});
-var UrlModel = mongoose.model("UrlModel", urlShema);
+//get url model
+UrlModel = require('./models/urlShema');
+
+
+
 
 //function to find and start downloads for new screenshots
 async function findDownload(UrlModel, identifier){
@@ -65,7 +63,7 @@ async function findDownload(UrlModel, identifier){
 
               //download the screenshot
               await downloadScreenshot(urlToDownload.url,
-                urlToDownload.imgLink);
+                urlToDownload.imgLink, urlToDownload._id);
 
               //update database to signify that download has finnished
               UrlModel.update({_id: urlToDownload._id}, {downloaded: true}, function(err, response){
@@ -84,7 +82,7 @@ async function findDownload(UrlModel, identifier){
 
 
 //downloads screenshot for specified url into image link
-async function downloadScreenshot(url, imgLink){
+async function downloadScreenshot(url, imgLink, assignmentId){
   console.log('starting download of ' + imgLink);
   //start browser
   const browser = await puppeteer.launch({ executablePath: "./node_modules/puppeteer/.local-chromium/win64-686378/chrome-win/chrome.exe"});
@@ -102,8 +100,14 @@ async function downloadScreenshot(url, imgLink){
   setTimeout(async function(){
     page.screenshot({path: imgLink, type: 'jpeg',
     quality: config.screenshotQuality}).then(() => {
+      //close browser
+      //maybe later have better tracking of browsers so they don't need to be
+      //started and stoped so frequently
       browser.close();
-      console.log('finished download of ' + url);
+      console.log('finished download of ' + url );
+      //now upload the image we just downloaded
+      uploader.uploadImg(imgLink, url, assignmentId);
+
     });
   }, 1000);
 }
