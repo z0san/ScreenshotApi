@@ -16,17 +16,18 @@ mongoose.connect('mongodb+srv://' + config.dbUser + ':' + config.dbPass +
     });
 
 
-function uploadImg(imgUrl, url, assignmentId){
-  console.log('starting upload of ' + url);
-  if(imgUrl && url && assignmentId){
+function uploadImg(imgUrl, fileName, url, assignmentId){
+  if(imgUrl && fileName && url && assignmentId){
+    console.log('starting upload of ' + url);
     var obj = {
       imgUrl: imgUrl,
       url: url,
+      fileName: fileName,
       assignmentId: assignmentId,
       img:
       {
           data: fs.readFileSync(path.join(imgUrl)),
-          contentType: 'imagejpg'
+          contentType: 'image/jpg'
       }
     }
 
@@ -40,7 +41,10 @@ function uploadImg(imgUrl, url, assignmentId){
        }
     })
 
-  }else return null;
+  }else {
+    console.log('incorrect parameters given');
+    return null;
+  }
 }
 
 

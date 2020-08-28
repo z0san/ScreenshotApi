@@ -13,18 +13,10 @@ var mongoose = require('mongoose');
 mongoose.connect('mongodb+srv://' + config.dbUser + ':' + config.dbPass +
 '@cluster0.0czcr.mongodb.net/' + config.dbName + '?retryWrites=true&w=majority');
 
-//create schema for saving urls
-var urlShema = mongoose.Schema({
- url: String,
- hash: String,
- suffix: Number,
- imgLink: String,
- downloaded: Boolean,
- assigned: Boolean,
- downloader: String,
- downloadStartTime: Number
-});
-var UrlModel = mongoose.model("UrlModel", urlShema);
+//load schemas
+var UrlModel = require('./models/urlShema');
+var ImgModel = require('./models/imageSchema');
+
 
 //handels search for url screenshot
 router.get('/', function(req, res){
@@ -34,7 +26,7 @@ router.get('/', function(req, res){
   console.log('download request for: ' + url);
 
   //find if already in db
-  UrlModel.find({url: url},
+  ImgModel.find({url: url},
    function(err, response){
      //deal with errors
      if(err){
@@ -44,21 +36,36 @@ router.get('/', function(req, res){
 
      //test to see if there are any results for required url
      if(response.length == 0){
-        //stores the hash of the url for faster file managment
-        var hash = crypto.createHash('md5').update(url).digest("hex");
-
        //adds url to db
        if(!url){ //needs to make sure it's a valid url
-           res.send('please enter a valid url');
+           res.status(400); //set code to9 400 for bad request
+           res.json({message: "invalid url"});
         } else {
-          //call save new url funciton to create a new entry for this url
-          saveNewUrl(UrlModel, url, hash, function(err, response){
-            res.send("New person url added!");
-          });
+          //if it is a valid url and we don't currently have an image for it we
+          //need to first see if it is already assigned
+
+          imageDownloading(url, function(err, response, isDownloading){
+
+            if(isDownloading){ //if the image is currently being donwloaded
+              res.status(204);
+              res.json({message: "currently being downloaded"});
+            } else { //if the image has not been scheduled for donwload yet
+
+              //stores the hash of the url for faster file managment
+              var hash = crypto.createHash('md5').update(url).digest("hex");
+
+              //call save new url funciton to create a new entry for this url
+              saveNewUrl(UrlModel, url, hash, function(err, response){
+                res.status(204);
+                res.json({message: "currently being downloaded"});
+              });
+            }
+          })
         }
      }else{ //if there is already an entry in db for specified url send url
+       res.status(200); //set status 200 for image successfully found
        console.log(response[0]);
-       res.send(response[0]["imgLink"]);
+       res.json(response[0]);
      }
   });
 
@@ -77,6 +84,7 @@ function saveNewUrl(UrlModel, url, hash, callback){
        hash: hash,
        suffix: suffix,
        imgLink: "screenshots/" + hash + suffix.toString() + ".jpg",
+       fileName: hash + suffix.toString() + ".jpg",
        downloaded: false,
        assigned: false,
        downloader: null,
@@ -100,4 +108,25 @@ function getSuffix(UrlModel, hash, callback){
     //console.log('response length: ' + suffix);
     callback(err, response, suffix);
   });
+}
+
+
+//function to return bool as to whether or not image is currenlty being downloaded
+function imageDownloading(url, callback){
+  //find if already in db
+  ImgModel.find({url: url},
+   function(err, response){
+     //deal with errors
+     if(err){
+       console.log(result);
+       return console.error(err);
+     }
+
+     //test to see if there are any results for required url
+     if(response.length == 0){ //if no results call the callback with false
+       callback(err, response, false);
+     }else { //if there are results then call teh callback with true
+       callback(err, response, true);
+     }
+   });
 }

@@ -24,7 +24,7 @@ app.use('/screenshots', express.static('screenshots'));
 var download = require('./screenshots.js');
 
 //Use the Router on the sub route /movies
-app.use('/imageFetcher', download);
+app.use('/imagefetcher', download);
 
 //handels homepage and redirects to ssdownload for testing purposes
 app.get('/', function(req, res){
@@ -32,4 +32,4 @@ app.get('/', function(req, res){
 });
 
 
-app.listen(80);
+app.listen(3000);
