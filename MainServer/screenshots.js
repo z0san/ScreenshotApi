@@ -25,6 +25,9 @@ router.get('/', function(req, res){
 
   console.log('download request for: ' + url);
 
+  //allow this to come from any url
+  res.header("Access-Control-Allow-Origin", "*");
+
   //find if already in db
   ImgModel.find({url: url},
    function(err, response){
@@ -64,8 +67,16 @@ router.get('/', function(req, res){
         }
      }else{ //if there is already an entry in db for specified url send url
        res.status(200); //set status 200 for image successfully found
-       console.log(response[0]);
-       res.json(response[0]);
+       //console.log(response[0]);
+       var img = new Buffer(response[0].img.data).toString('base64');
+       res.json({
+         url: response[0].url,
+         fileName: response[0].fileName,
+         img: {
+           base64: img,
+           contentType: response[0].img.contentType
+         }
+       });
      }
   });
 

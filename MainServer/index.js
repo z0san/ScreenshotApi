@@ -17,8 +17,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(upload.array());
 app.use(express.static('public'));
 
-//make the screenshots capable
-app.use('/screenshots', express.static('screenshots'));
+//enable stylesheets
+app.use('/resources', express.static('resources'));
 
 //Require the Router we defined in movies.js
 var download = require('./screenshots.js');
