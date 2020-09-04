@@ -50,10 +50,11 @@ router.get('/', function(req, res){
           imageDownloading(url, function(err, response, isDownloading){
 
             if(isDownloading){ //if the image is currently being donwloaded
+              console.log(url + ' is already being downloaded');
               res.status(204);
               res.json({message: "currently being downloaded"});
             } else { //if the image has not been scheduled for donwload yet
-
+              console.log(url + ' will now be donwloaded');
               //stores the hash of the url for faster file managment
               var hash = crypto.createHash('md5').update(url).digest("hex");
 
@@ -125,7 +126,7 @@ function getSuffix(UrlModel, hash, callback){
 //function to return bool as to whether or not image is currenlty being downloaded
 function imageDownloading(url, callback){
   //find if already in db
-  ImgModel.find({url: url},
+  UrlModel.find({url: url},
    function(err, response){
      //deal with errors
      if(err){
