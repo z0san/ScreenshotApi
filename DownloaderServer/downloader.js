@@ -22,8 +22,7 @@ UrlModel = require('./models/urlShema');
 
 //function to find and start downloads for new screenshots
 async function findDownload(UrlModel, identifier){
-  //boolean indicating if function needs to be restarted
-  var restart = true;
+  //await identifier;
   //console.log('thread ' + identifier + ' looking for new download');
   //prevent stack overflow
   await Promise.resolve();
@@ -37,11 +36,16 @@ async function findDownload(UrlModel, identifier){
         return console.error(err);
       }
 
-      if (response.length != 0) console.log(response.length + ' potential websites found');
+      if (response.length == 0){
+        //console.log('no potential websites found');
+          //after finnished wait for min number of seconds and then search for next ss to be downloaded
+        setTimeout(function(){findDownload(UrlModel, identifier);}, 500);
+        return;
+      }
 
       //return if there are no websites that need screenshots
       if (response.length !=0){
-
+        console.log(response.length + ' potential websites found');
         //for now we will just use the top result but later we will build better
         //rankng system for which screnshots to download first
         var urlToDownload = response[0];
@@ -62,7 +66,10 @@ async function findDownload(UrlModel, identifier){
               //download the screenshot
               await downloadScreenshot(urlToDownload.url,
                 urlToDownload.imgLink, urlToDownload.fileName,
-                urlToDownload._id);
+                urlToDownload._id).then(() => {
+                  //after finnished look for another website to download
+                  findDownload(UrlModel, identifier);
+                });
 
               //update database to signify that download has finnished
               UrlModel.update({_id: urlToDownload._id}, {downloaded: true}, function(err, response){
@@ -75,8 +82,7 @@ async function findDownload(UrlModel, identifier){
       }
     })
 
-  //after finnished wait for min number of seconds and then search for next ss to be downloaded
-  if (restart) setTimeout(function(){findDownload(UrlModel, identifier)}, 500);
+
 }
 
 
@@ -96,7 +102,7 @@ async function downloadScreenshot(url, imgLink, fileName, assignmentId){
   //go to url
   await page.goto(url);
   //git the page 1 second to load before taking screenshot
-  setTimeout(async function(){
+  await setTimeout(async function(){
     page.screenshot({path: imgLink, type: 'jpeg',
     quality: config.screenshotQuality}).then(() => {
       //close browser

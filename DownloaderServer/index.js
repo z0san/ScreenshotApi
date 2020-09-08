@@ -10,6 +10,6 @@ var downloader = require('./downloader');
 for (var i = 0; i < config.threads; i++){
   console.log('starting thread ' + i);
   //offset the start of each thread so that they are less likely to download the same url
-  setTimeout(() => {downloader.findDownload(UrlModel, i)}, 100 * i);
+  setTimeout(() => {downloader.findDownload(UrlModel, i)}, 500 * i);
 }
 console.log('all threads started!');
