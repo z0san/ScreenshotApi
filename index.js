@@ -2,12 +2,24 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var multer = require('multer');
 var cookieParser = require('cookie-parser');
+var util = require('util');
+var https = require('https');
+var http = require('http');
+var fs = require('fs');
+
 
 var upload = multer();
 
 
 //load config
 const config = require('./config');
+
+//load certificates
+const options = {
+  key: fs.readFileSync(config.keyFile),
+  cert: fs.readFileSync(config.fullchainFile)
+};
+
 
 var app = express();
 
@@ -32,4 +44,6 @@ app.get('/', function(req, res){
 });
 
 
-app.listen(3000);
+https.createServer(options, app).listen(3000, function() {
+  console.log('Listening on port 3000!');
+});
